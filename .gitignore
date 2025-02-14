@@ -1,9 +1,13 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+modules/s3-backend/*.tfstate
+modules/s3-backend/*.tfvar
+modules/s3-backend/*.tfstate.*
 
 .override/
 .terraform/
+modules/s3-backend/.terraform
 
 *.log
 credentials.tf

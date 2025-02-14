@@ -1,9 +1,0 @@
-region            = "ap-southeast-1"
-account_id        = "215747692665" 
-github_repo       = "nhan9725"     
-vpc_id            = "vpc-08d419a29310c47b1"   
-subnet_ids        = ["subnet-008672dc8eb96f8c0", "subnet-0b2f7e4be11116cb9"] 
-domain_name       = "test.huethuong.online" 
-acm_certificate_arn = "arn:aws:acm:ap-southeast-1:215747692665:certificate/b6fd961e-0527-4e11-a20b-50caa787053f" 
-app_image_uri   = "215747692665.dkr.ecr.ap-southeast-1.amazonaws.com/dev-app:app-latest"
-nginx_image_uri = "215747692665.dkr.ecr.ap-southeast-1.amazonaws.com/dev-app:nginx-latest"
