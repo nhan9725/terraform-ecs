@@ -1,0 +1,10 @@
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+.override/
+.terraform/
+
+*.log
+credentials.tf
+secrets.tf
