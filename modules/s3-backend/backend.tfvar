@@ -1,0 +1,2 @@
+s3_bucket_name         = "test-devops-terraform"
+dynamodb_table_name    = "terraform-state-lock"
