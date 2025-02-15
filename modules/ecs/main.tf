@@ -15,27 +15,6 @@ resource "aws_ecs_task_definition" "dev_task" {
   container_definitions = <<DEFINITION
 [
   {
-    "name": "nginx",
-    "image": "${var.nginx_image_uri}",
-    "essential": true,
-    "portMappings": [
-      {
-        "containerPort": 80,
-        "hostPort": 80,
-        "protocol": "tcp"
-      }
-    ],
-    "environment": [],
-    "logConfiguration": {
-      "logDriver": "awslogs",
-      "options": {
-        "awslogs-group": "${aws_cloudwatch_log_group.nginx_logs.name}",
-        "awslogs-region": "${var.region}",
-        "awslogs-stream-prefix": "nginx"
-      }
-    }
-  },
-  {
     "name": "dev-app",
     "image": "${var.app_image_uri}",
     "portMappings": [
@@ -92,6 +71,7 @@ resource "aws_security_group" "ecs_task_sg" {
     from_port       = 3000
     to_port         = 3000
     protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
     security_groups = [var.alb_security_group_id]
   }
 

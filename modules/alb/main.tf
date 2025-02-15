@@ -1,87 +1,3 @@
-# ALB
-resource "aws_lb" "dev_alb" {
-  name               = var.alb_name
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id] 
-  subnets            = var.subnet_ids
-}
-
-# Target Group for app
-resource "aws_lb_target_group" "dev_tg" {
-  name     = "dev-tg"
-  port     = 3000
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    path                = "/healthcheck"               
-    port                = "traffic-port"    
-    protocol            = "HTTP"            
-    healthy_threshold   = 2                 
-    unhealthy_threshold = 2                 
-    timeout             = 5                 
-    interval            = 30                
-    matcher             = "200"             
-  }
-  # lifecycle {
-  #   prevent_destroy = true 
-  # }
-}
-
-# Target Group for Nginx
-resource "aws_lb_target_group" "nginx_tg" {
-  name     = "nginx-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 5
-    interval            = 30
-    matcher             = "200"
-  }
-}
-
-# HTTPS Listener
-resource "aws_lb_listener" "https_listener" {
-  load_balancer_arn = aws_lb.dev_alb.arn
-  port              = 443
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.acm_certificate_arn
-
-  default_action {
-    type = "forward"
-    target_group_arn = aws_lb_target_group.dev_tg.arn
-  }
-  depends_on = [aws_lb_target_group.dev_tg]
-}
-
-# HTTP Listener (Redirect to HTTPS)
-resource "aws_lb_listener" "http_listener" {
-  load_balancer_arn = aws_lb.dev_alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-  depends_on = [aws_lb_target_group.dev_tg]
-}
-
 # Security Group for ALB
 resource "aws_security_group" "alb_sg" {
   name        = "alb-security-group"
@@ -116,13 +32,97 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
+# ALB
+resource "aws_lb" "dev_alb" {
+  name               = var.alb_name
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id] 
+  subnets            = var.subnet_ids
+}
+
+#Target Group for app
+resource "aws_lb_target_group" "dev_tg" {
+  name     = "dev-tg"
+  port     = 3000
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    path                = "/healthcheck"               
+    port                = "traffic-port"    
+    protocol            = "HTTP"            
+    healthy_threshold   = 2                 
+    unhealthy_threshold = 2                 
+    timeout             = 5                 
+    interval            = 30                
+    matcher             = "200"             
+  }
+  # lifecycle {
+  #   prevent_destroy = true 
+  # }
+}
+
+# Target Group for Nginx
+# resource "aws_lb_target_group" "nginx_tg" {
+#   name     = "nginx-tg"
+#   port     = 80
+#   protocol = "HTTP"
+#   vpc_id   = var.vpc_id
+#   target_type = "ip"
+
+#   health_check {
+#     path                = "/health"
+#     port                = "traffic-port"
+#     protocol            = "HTTP"
+#     healthy_threshold   = 2
+#     unhealthy_threshold = 2
+#     timeout             = 5
+#     interval            = 30
+#     matcher             = "200"
+#   }
+# }
+
+# HTTPS Listener
+resource "aws_lb_listener" "https_listener" {
+  load_balancer_arn = aws_lb.dev_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.acm_certificate_arn
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.dev_tg.arn
+  }
+   depends_on = [aws_lb_target_group.dev_tg]
+}
+
+# HTTP Listener (Redirect to HTTPS)
+resource "aws_lb_listener" "http_listener" {
+  load_balancer_arn = aws_lb.dev_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+   depends_on = [aws_lb_target_group.dev_tg]
+}
+
 # HTTPS Listener Rule for Domain
 resource "aws_lb_listener_rule" "domain_rule" {
   listener_arn = aws_lb_listener.https_listener.arn
 
   action {
     type = "forward"
-    target_group_arn = aws_lb_target_group.nginx_tg.arn
+    target_group_arn = aws_lb_target_group.dev_tg.arn
   }
 
   condition {
